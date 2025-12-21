@@ -35,7 +35,7 @@ def min_max_rekursif(data, low, high):
 
 # SETTING UJI
 st.subheader("Konfigurasi Pengujian")
-max_n = st.slider("Ukuran data maksimum", 100, 10000, 5000, step=100)
+max_n = st.slider("Ukuran data maksimum", 1000, 155000, 70000, step=1000)
 step = st.selectbox("Kenaikan ukuran data", [100, 500, 1000])
 repeat = st.slider("Jumlah pengulangan", 1, 10, 3)
 
@@ -47,13 +47,16 @@ if st.button("Jalankan Benchmark"):
     rec_times = []
 
     for n in sizes:
-        data = [random.randint(50_000, 5_000_000) for _ in range(n)]
+        #data = [random.randint(50_000, 5_000_000) for _ in range(n)]
+        # IMPORT DATA
+        data = pd.read_csv("Coffeeshop_Transact_Combine156.3k.csv")
+        payment = data["total_payment"]
 
         # Iteratif
         total_iter = 0
         for _ in range(repeat):
             start = time.time()
-            min_max_iteratif(data)
+            min_max_iteratif(payment)
             total_iter += time.time() - start
         iter_times.append(total_iter / repeat)
 
@@ -62,7 +65,7 @@ if st.button("Jalankan Benchmark"):
             total_rec = 0
             for _ in range(repeat):
                 start = time.time()
-                min_max_rekursif(data, 0, n - 1)
+                min_max_rekursif(payment, 0, n - 1)
                 total_rec += time.time() - start
             rec_times.append(total_rec / repeat)
         else:
