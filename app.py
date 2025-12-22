@@ -35,7 +35,7 @@ def min_max_rekursif(data, low, high):
 
 # SETTING UJI
 st.subheader("Konfigurasi Pengujian")
-max_n = st.slider("Ukuran data maksimum", 1000, 155000, 70000, step=1000)
+max_n = st.slider("Ukuran data maksimum", 1000, 156000, 70000, step=1000)
 step = st.selectbox("Kenaikan ukuran data", [100, 500, 1000])
 repeat = st.slider("Jumlah pengulangan", 1, 10, 3)
 
