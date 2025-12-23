@@ -1,4 +1,4 @@
-import streamlit as st #
+import streamlit as st
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
@@ -9,47 +9,65 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title(" Analisis Pendapatan Coffeeshop")
+# CSS CUSTOM UNTUK BACKGROUND COKLAT TUA
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #3E2723;
+    }
+    .stMarkdown, .stText {
+        color: #EFEBE9;
+    }
+    h1, h2, h3 {
+        color: #D7CCC8 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("Analisis Pendapatan Coffeeshop")
 st.write("Pencarian pendapatan minimum & maksimum menggunakan algoritma iteratif dan rekursif")
 
 # ALGORITMA MIN MAX
 def min_max_iteratif(data):
-    min_val = data[0]
-    max_val = data[0]
+    nilai_min = data[0]
+    nilai_max = data[0]
 
-    for x in data:
-        if x < min_val:
-            min_val = x
-        if x > max_val:
-            max_val = x
+    for nilai in data:
+        if nilai < nilai_min:
+            nilai_min = nilai
+        if nilai > nilai_max:
+            nilai_max = nilai
 
-    return min_val, max_val
+    return nilai_min, nilai_max
 
 
-def min_max_rekursif(data, low, high):
-    if low == high:
-        return data[low], data[low]
+def min_max_rekursif(data, bawah, atas):
+    if bawah == atas:
+        return data[bawah], data[bawah]
 
-    if high == low + 1:
-        return min(data[low], data[high]), max(data[low], data[high])
+    if atas == bawah + 1:
+        return min(data[bawah], data[atas]), max(data[bawah], data[atas])
 
-    mid = (low + high) // 2
-    min1, max1 = min_max_rekursif(data, low, mid)
-    min2, max2 = min_max_rekursif(data, mid + 1, high)
+    tengah = (bawah + atas) // 2
+    min1, max1 = min_max_rekursif(data, bawah, tengah)
+    min2, max2 = min_max_rekursif(data, tengah + 1, atas)
 
     return min(min1, min2), max(max1, max2)
 
 # UPLOAD DATA
-st.subheader(" Upload Data Transaksi")
+st.subheader("Upload Data Transaksi")
 
-uploaded_file = st.file_uploader(
-    "Upload file Excel atau cvs (.xlsx, .cvs)",
-    type=["xlsx", "cvs"]
+file_upload = st.file_uploader(
+    "Upload file Excel atau csv (.xlsx, .csv)",
+    type=["xlsx", "csv"]
 )
 
-if uploaded_file:
+if file_upload:
     # BACA & BERSIHKAN DATA
-    df = pd.read_excel(uploaded_file)
+    if file_upload.name.endswith('.csv'):
+        df = pd.read_csv(file_upload)
+    else:
+        df = pd.read_excel(file_upload)
 
     df = df[
         [
@@ -62,76 +80,87 @@ if uploaded_file:
 
     df["revenue"] = df["transaction_qty"] * df["unit_price"]
 
-    st.subheader(" Preview Data")
+    st.subheader("Preview Data")
     st.dataframe(df.head())
 
     # DATA UNTUK ALGORITMA
-    revenues = df["revenue"].tolist()
-    n = len(revenues)
+    data_pendapatan = df["revenue"].tolist()
+    jumlah_data = len(data_pendapatan)
 
-    st.info(f"Total transaksi: {n}")
+    st.info(f"Total transaksi: {jumlah_data}")
 
     # JALANKAN PENCARIAN
-    if st.button(" Cari Pendapatan Min & Max"):
+    if st.button("Cari Pendapatan Min & Max"):
         # Iteratif
-        start = time.time()
-        min_iter, max_iter = min_max_iteratif(revenues)
-        time_iter = time.time() - start
+        waktu_mulai = time.time()
+        min_iteratif, max_iteratif = min_max_iteratif(data_pendapatan)
+        waktu_iteratif = time.time() - waktu_mulai
 
         # Rekursif di limit 1 jt
-        if n <= 1000000:
-            start = time.time()
-            min_rec, max_rec = min_max_rekursif(revenues, 0, n - 1)
-            time_rec = time.time() - start
+        if jumlah_data <= 1000000:
+            waktu_mulai = time.time()
+            min_rekursif, max_rekursif = min_max_rekursif(data_pendapatan, 0, jumlah_data - 1)
+            waktu_rekursif = time.time() - waktu_mulai
         else:
-            min_rec, max_rec = None, None
-            time_rec = None
+            min_rekursif, max_rekursif = None, None
+            waktu_rekursif = None
 
         # HASIL
-        st.subheader(" Hasil Pencarian Pendapatan")
+        st.subheader("Hasil Pencarian Pendapatan")
 
-        col1, col2 = st.columns(2)
-        col1.metric("Pendapatan Minimum", f"$ {min_iter:,.0f}")
-        col2.metric("Pendapatan Maksimum", f"$ {max_iter:,.0f}")
+        kolom1, kolom2 = st.columns(2)
+        kolom1.metric("Pendapatan Minimum", f"$ {min_iteratif:,.0f}")
+        kolom2.metric("Pendapatan Maksimum", f"$ {max_iteratif:,.0f}")
 
         # TABEL WAKTU EKSEKUSI
-        st.subheader(" Waktu Eksekusi")
+        st.subheader("Waktu Eksekusi")
 
-        time_df = pd.DataFrame({
+        df_waktu = pd.DataFrame({
             "Metode": ["Iteratif", "Rekursif"],
-            "Waktu (detik)": [time_iter, time_rec]
+            "Waktu (detik)": [waktu_iteratif, waktu_rekursif]
         })
 
-        st.dataframe(time_df)
+        st.dataframe(df_waktu)
 
         # GRAFIK
-        st.subheader(" Grafik Perbandingan Waktu")
+        st.subheader("Grafik Perbandingan Waktu")
 
-        fig = plt.figure()
-        plt.bar(
+        fig, ax = plt.subplots(figsize=(8, 5))
+        fig.patch.set_facecolor('#3E2723')
+        ax.set_facecolor('#5D4037')
+        
+        batang = ax.bar(
             ["Iteratif", "Rekursif"],
             [
-                time_iter,
-                time_rec if time_rec is not None else 0
-            ]
+                waktu_iteratif,
+                waktu_rekursif if waktu_rekursif is not None else 0
+            ],
+            color=['#8D6E63', '#A1887F']
         )
-        plt.ylabel("Waktu (detik)")
-        plt.title("Iteratif vs Rekursif")
+        
+        ax.set_ylabel("Waktu (detik)", color='#EFEBE9')
+        ax.set_title("Iteratif vs Rekursif", color='#EFEBE9', fontsize=14, fontweight='bold')
+        ax.tick_params(colors='#EFEBE9')
+        ax.spines['bottom'].set_color('#EFEBE9')
+        ax.spines['top'].set_color('#EFEBE9')
+        ax.spines['left'].set_color('#EFEBE9')
+        ax.spines['right'].set_color('#EFEBE9')
+        
         st.pyplot(fig)
 
-        # BONUS: PER KATEGORI
-        st.subheader(" Pendapatan Min & Max per Kategori Produk")
+        # PER KATEGORI
+        st.subheader("Pendapatan Min & Max per Kategori Produk")
 
-        category_result = (
+        hasil_kategori = (
             df.groupby("product_category")["revenue"]
             .agg(["min", "max"])
             .reset_index()
         )
 
-        st.dataframe(category_result)
+        st.dataframe(hasil_kategori)
 
         # KESIMPULAN
-        st.subheader(" Kesimpulan")
+        st.subheader("Kesimpulan")
         st.markdown("""
         - Pendapatan dihitung dari `transaction_qty × unit_price`
         - Algoritma **iteratif lebih cepat dan stabil**
