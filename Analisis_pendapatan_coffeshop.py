@@ -88,18 +88,32 @@ if file_upload:
     jumlah_data = len(data_pendapatan)
 
     st.info(f"Total transaksi: {jumlah_data}")
+    
+    with st.form("parameter_form"):
+        max_n = st.slider(
+            "Ukuran data:",
+            min_value=1000,
+            max_value=jumlah_data,
+            value=min(10000, jumlah_data),
+            step=1000
+        )
+        submit = st.form_submit_button("Cari Pendapatan Min & Max")
+
 
     # JALANKAN PENCARIAN
-    if st.button("Cari Pendapatan Min & Max"):
+    if submit:
+        
+        data_uji = data_pendapatan[:max_n]
+        
         # Iteratif
         waktu_mulai = time.time()
-        min_iteratif, max_iteratif = min_max_iteratif(data_pendapatan)
+        min_iteratif, max_iteratif = min_max_iteratif(data_uji)
         waktu_iteratif = time.time() - waktu_mulai
 
         # Rekursif di limit 1 jt
         if jumlah_data <= 1000000:
             waktu_mulai = time.time()
-            min_rekursif, max_rekursif = min_max_rekursif(data_pendapatan, 0, jumlah_data - 1)
+            min_rekursif, max_rekursif = min_max_rekursif(data_uji, 0, len(data_uji) - 1)
             waktu_rekursif = time.time() - waktu_mulai
         else:
             min_rekursif, max_rekursif = None, None
@@ -107,6 +121,7 @@ if file_upload:
 
         # HASIL
         st.subheader("Hasil Pencarian Pendapatan")
+        st.subheader(f"Jumlah Data: {max_n}")
 
         kolom1, kolom2 = st.columns(2)
         kolom1.metric("Pendapatan Minimum", f"$ {min_iteratif:,.0f}")
