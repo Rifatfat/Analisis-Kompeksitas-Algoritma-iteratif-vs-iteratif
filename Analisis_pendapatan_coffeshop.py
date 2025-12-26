@@ -81,7 +81,7 @@ if file_upload:
     df["revenue"] = df["transaction_qty"] * df["unit_price"]
 
     st.subheader("Preview Data")
-    st.dataframe(df.head())
+    st.dataframe(df.head(1000), height=300, use_container_width=True)
 
     # DATA UNTUK ALGORITMA
     data_pendapatan = df["revenue"].tolist()
@@ -118,14 +118,25 @@ if file_upload:
         else:
             min_rekursif, max_rekursif = None, None
             waktu_rekursif = None
+        
+        min_row = df.loc[df["revenue"].idxmin()]
+        max_row = df.loc[df["revenue"].idxmax()]
+
+        min_value = min_row["revenue"]
+        max_value = max_row["revenue"]
+
+        min_category = min_row["product_category"]
+        max_category = max_row["product_category"]
 
         # HASIL
         st.subheader("Hasil Pencarian Pendapatan")
         st.subheader(f"Jumlah Data: {max_n}")
 
         kolom1, kolom2 = st.columns(2)
-        kolom1.metric("Pendapatan Minimum", f"$ {min_iteratif:,.0f}")
-        kolom2.metric("Pendapatan Maksimum", f"$ {max_iteratif:,.0f}")
+        kolom1.metric("Pendapatan Minimum", f"$ {min_iteratif:,.2f}")
+        kolom1.markdown(f"**Produk:** {min_category}")
+        kolom2.metric("Pendapatan Maksimum", f"$ {max_iteratif:,.2f}")
+        kolom2.markdown(f"**Produk:** {max_category}")
 
         # TABEL WAKTU EKSEKUSI
         st.subheader("Waktu Eksekusi")
@@ -163,16 +174,16 @@ if file_upload:
         
         st.pyplot(fig)
 
-        # PER KATEGORI
-        st.subheader("Pendapatan Min & Max per Kategori Produk")
+        # # PER KATEGORI
+        # st.subheader("Pendapatan Min & Max per Kategori Produk")
 
-        hasil_kategori = (
-            df.groupby("product_category")["revenue"]
-            .agg(["min", "max"])
-            .reset_index()
-        )
+        # hasil_kategori = (
+        #     df.groupby("product_category")["revenue"]
+        #     .agg(["min", "max"])
+        #     .reset_index()
+        # )
 
-        st.dataframe(hasil_kategori)
+        #st.dataframe(hasil_kategori) 
 
         # KESIMPULAN
         st.subheader("Kesimpulan")
